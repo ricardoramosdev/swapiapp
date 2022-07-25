@@ -1,4 +1,4 @@
-import { CheckCircleOutlined, DeleteOutlined, EditOutlined, EllipsisOutlined, ExclamationCircleOutlined, SettingOutlined, WarningOutlined } from '@ant-design/icons'
+import { CheckCircleOutlined, ConsoleSqlOutlined, DeleteOutlined, EditOutlined, EllipsisOutlined, ExclamationCircleOutlined, SettingOutlined, WarningOutlined } from '@ant-design/icons'
 import { Button, Card, Input, List, Modal, Pagination } from 'antd'
 import Avatar from 'antd/lib/avatar/avatar'
 import Meta from 'antd/lib/card/Meta'
@@ -34,12 +34,18 @@ try{
     console.log(err)
 
 }}
+
 //Guardo los datos en local storage para poder modificarlos
 const listFromLocal = ()=>{
   const lista = JSON.parse(localStorage.getItem('listIt'))
   console.log("seteo estado desde local")
   setListIt(lista)
 }
+const searchByName =(search)=>{
+  setSearch(search.target.value)
+}
+  
+  const listToRender = !search ? listIt : listIt.filter(it=>it.name.toLowerCase().includes(search.toLowerCase())) ;
 const editPerson =(item, index)=>{
   console.log(index)
 }
@@ -87,7 +93,7 @@ useEffect(()=>{
   return (
     <>
   <div className="search">
-    <Input id='search' placeholder="Busca por nombre"/>
+    <Input id='search' onChange={searchByName} placeholder="Busca por nombre"/>
   </div>
     <List
     grid={{
@@ -100,7 +106,7 @@ useEffect(()=>{
       xxl: 3,
     }}
     loading={loading}
-    dataSource={listIt}
+    dataSource={listToRender}
     pagination={{ defaultCurrent:1, pageSize:10}}
     renderItem={item => (
       <List.Item>
