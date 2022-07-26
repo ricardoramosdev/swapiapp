@@ -1,5 +1,5 @@
 import { Routes, Route } from 'react-router-dom';
-import './App.css';
+
 import { ItemsDetail } from './ItemsDetail/ItemsDetail';
 import { ListItems } from './pages/ListItems/ListItems';
 

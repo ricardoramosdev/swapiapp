@@ -20,14 +20,15 @@ import {
 } from "antd";
 import Avatar from "antd/lib/avatar/avatar";
 import Meta from "antd/lib/card/Meta";
-import axios from "axios";
-import React, { useEffect, useState } from "react";
 import "antd/dist/antd.css";
 import "./ListItem.css";
+import axios from "axios";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import confirm from "antd/lib/modal/confirm";
 import { ItemsDetailModal } from "../../ItemsDetail/ItemsDetailModal";
 import { Option } from "rc-select";
+import { useForm } from "antd/lib/form/Form";
 const URL = "https://swapi.dev/api";
 
 export const ListItems = () => {
@@ -36,7 +37,10 @@ export const ListItems = () => {
   const [loading, setLoading] = useState(false);
   const [selectedPerson, setSelectedPerson] = useState({});
   const [visible, setVisible] = useState(false);
-  const [edit, setEdit] = useState(true);
+  const [edit, setEdit] = useState(false);
+  const [add, setAdd] = useState(false);
+
+  const [form] = useForm();
   //● Generar una lista de tarjetas que muestre cada personaje(nombre, peso, altura)
   //Obtengo datos de la api
   const listFromApi = async () => {
@@ -77,14 +81,26 @@ export const ListItems = () => {
       );
 
   const moreInfo = (item, index) => {
-    setEdit(true);
+    setEdit(false);
+    setAdd(false)
     setSelectedPerson(item);
     setVisible(true);
   };
   const editPerson = (item, index) => {
     console.log(index);
-    setEdit(false);
+    setEdit(true);
   };
+  const addPerson = ()=>{
+
+    setEdit(false);
+    setAdd(true);
+    setVisible(true);
+
+  }
+  const addPersonToDB = ()=>{
+    console.log(new FormData(document.getElementById('person-info')))
+
+  }
   const deleteModal = (item, index) => {
     Modal.confirm({
       title: `¿Está seguro de que quiere eliminar el personaje ${item.name}?`,
@@ -118,23 +134,26 @@ export const ListItems = () => {
       setLoading(false);
     });
   }, []);
-  // ● Al hacer click en un personaje renderizar una tarjeta con más detalles del personaje. VER COMPONENTE ITEM DETAIL
+  // ● Al hacer click en un personaje renderizar una tarjeta con más detalles del personaje. LISTO
   // ● Realizar un CRUD de personajes, modificar, eliminar personajes de la api y poder
   // generar nuevos personajes.
 
   // ● Búsqueda de personaje por nombre.
   // ● Generar algún tipo de filtro por “gender”, “homeworld”, o alguna propiedad a elección
-  // propia.
+  // propia. LISTO
   return (
     <>
       <div className="search">
         <Input
+        className="search-param"
           id="search"
           onChange={searchByName}
           placeholder="Busca por nombre"
         />
 
         <Select 
+        className="search-param"
+
         onChange={searchByFilter}
         style={{width:'100%'}}
         placeholder='Filter by gender'
@@ -145,6 +164,7 @@ export const ListItems = () => {
           <Option value='n/a'>Other</Option>
         </Select>
       </div>
+      <div className="add"><Button className="add-button" onClick={addPerson} >+</Button></div>
       <List
         grid={{
           gutter: 16,
@@ -183,12 +203,15 @@ export const ListItems = () => {
         visible={visible}
         onCancel={() => {
           setVisible(false);
+          setSelectedPerson({})
+
         }}
         footer={[
-          <Button hidden={edit}>Editar</Button>,
+          <Button hidden={!edit}>Editar</Button>,
           <Button
             onClick={() => {
               setVisible(false);
+              setSelectedPerson({})
             }}
           >
             Cancel
@@ -196,25 +219,45 @@ export const ListItems = () => {
           <Button
             onClick={() => {
               setVisible(false);
+              setSelectedPerson({})
+
             }}
-            hidden={!edit}
+            hidden={edit||add}
           >
             Ok
           </Button>,
+          <Button
+            onClick={() => {
+              setVisible(false);
+              addPersonToDB()
+            }}
+            hidden={!add}
+          >
+            Agregar
+          </Button>,
         ]}
       >
-        <Button
+        <Button hidden={add?true:false}
           onClick={() =>
             editPerson(selectedPerson, listIt.indexOf(selectedPerson))
           }
         >
           <EditOutlined key="edit" />
         </Button>
-        <div>{selectedPerson.name}</div>
         <div className="info">
-          <Form className="info-list" disabled={edit}>
+          <Form className="info-list" id="person-info" disabled={!edit &&!add}>
+          <Form.Item>
+              <label htmlFor="name">Nombre: </label>
+              <Input
+                name="name"
+                id="name"
+                value={selectedPerson.name}
+                
+              />
+            </Form.Item>
+
             <Form.Item>
-              <label for="peliculas">Peliculas: </label>
+              <label htmlFor="peliculas">Peliculas: </label>
               <Input
                 name="peliculas"
                 id="peliculas"
@@ -222,13 +265,15 @@ export const ListItems = () => {
                   <li>{el}</li>
                 ))}
               />
-              {selectedPerson.films?.map((el) => (
-                <li>{el}</li>
-              ))}
+              {selectedPerson.films?.map((el)=> async()=>{
+                let response = await axios.get(JSON.stringify(el))
+                console.log(response.data.name)
+                return'hola'
+})}
             </Form.Item>
 
             <Form.Item>
-              <label for="homeworld">Planeta Hogar: </label>
+              <label htmlFor="homeworld">Planeta Hogar: </label>
               <Input
                 name="homeworld"
                 id="homeworld"
