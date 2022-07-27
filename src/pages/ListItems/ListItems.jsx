@@ -201,7 +201,7 @@ export const ListItems = () => {
 
         onChange={searchByFilter}
         style={{width:'100%'}}
-        placeholder='Filter by gender'
+        placeholder='Filtrar por genero'
         >
           <Option value=''>All</Option>
           <Option value='male'>Male</Option>
@@ -244,7 +244,7 @@ export const ListItems = () => {
           </List.Item>
         )}
       />
-      //Global modal
+      {/* //Global modal */}
       <Modal
         visible={visible}
         onCancel={() => {
@@ -252,23 +252,9 @@ export const ListItems = () => {
           setSelectedPerson({})
 
         }}
-        footer={[
-          <Button hidden={!edit} htmlType="submit">Editar</Button>,
-          
-          <Button
-            onClick={() => {
-              setVisible(false);
-              setSelectedPerson({})
-
-            }}
-            hidden={edit||add}
-          >
-            Ok
-          </Button>,
-          
-        ]}
+        
       >
-        <Button hidden={add?true:false}
+        <Button 
           onClick={() =>
             editPerson(selectedPerson, listIt.indexOf(selectedPerson))
           }
@@ -276,7 +262,7 @@ export const ListItems = () => {
           <EditOutlined key="edit" />
         </Button>
         <div className="info">
-          <Form className="info-list" name={form} id="person-info" disabled={!edit &&!add}
+          <Form className="info-list" name={"editForm"} id="person-info" disabled={!edit}
           // initialValues={{
           //   name:null,
           //   peliculas:null,
@@ -288,76 +274,71 @@ export const ListItems = () => {
           //   gender:null
           // }}
            >
-          <Form.Item label="Name " id="name" name="name" key={"name"} initialValue={
-            {name:selectedPerson.name}
-          }>
-              <Input
+          <Form.Item label="Name " id="name" name="name" key={"name"} >
+              <Input hidden={!edit}
               />
+              {selectedPerson.name}
             </Form.Item>
 
             <Form.Item label="Películas" name="peliculas"  id="peliculas" key={"peliculas"}>
-              {/* <Input
-                value={selectedPerson.films?.map((el) => (
+              <Input  hidden={!edit}/>
+              {selectedPerson.films?.map((el) => (
                   <li>{el}</li>
                 ))}
-              /> */}
-             <div>
 
                 {/* {[insideFetch(selectedPerson.films)]?.map(el =><div key={el.title}>{el.title}</div>)} */}
-             </div>
-              
-             
             </Form.Item>
 
             <Form.Item  id="homeworld" name="homeworld" label="Planeta Hogar" key={"homeworld"}>
-              <Input
-                value={selectedPerson.homeworld}
+              <Input hidden={!edit}          
               />
+              {selectedPerson.homeworld}
             </Form.Item>
 
             <Form.Item name="starships" label="Naves" id="starships" key={"starships"}>
-              <Input value={selectedPerson.starships?.map((el) => (
+              <Input hidden={!edit}   />
+              {selectedPerson.starships?.map((el) => (
                 <li>{el}</li>
-              ))}  />
-              
+              ))}
             </Form.Item>
 
             <Form.Item name="vehicles" label="Vehículos" id="vehicles" key={"vehicles"}>
-              <Input
-                value={selectedPerson.vehicles?.map((el) => (
+              <Input hidden={!edit} />
+              {selectedPerson.vehicles?.map((el) => (
                   <li>{el}</li>
                 ))}
-              />
             </Form.Item>
 
             <Form.Item name="height" label="Altura[cm]" id="height" key={"height"}>
-              <Input  value={selectedPerson.height} />
+              <Input hidden={!edit} />
+              {selectedPerson.height} 
             </Form.Item>
 
             <Form.Item name="mass" label="Peso[kg]" id="mass" key={"mass"} >
-              <Input value={selectedPerson.mass} />
+              <Input hidden={!edit}  />
+              {selectedPerson.mass}
             </Form.Item>
 
             <Form.Item name="gender" label="Genero" id="gender" key={"gender"}>
-              <Input   value={selectedPerson.gender} />
+              <Input hidden={!edit}   />
+              {selectedPerson.gender}
             </Form.Item>
           
-
-            
-            <Form.Item key={"cancelButton"}>
             <Button 
             onClick={() => {
               setVisible(false);
               setSelectedPerson({});
-              form.resetFields()
             }}
+            hidden={!edit}
           >
             Cancel
           </Button>
-            </Form.Item>
+            <Button hidden={!edit} htmlType="submit">Editar</Button>
           </Form>
         </div>
       </Modal>
+
+
       {/* //Add modal */}
       <Modal
         visible={addVisible}
