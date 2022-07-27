@@ -11,11 +11,13 @@ import {
 import {
   Button,
   Card,
+  Col,
   Form,
   Input,
   List,
   Modal,
   Pagination,
+  Row,
   Select,
 } from "antd";
 import Avatar from "antd/lib/avatar/avatar";
@@ -39,6 +41,8 @@ export const ListItems = () => {
   const [visible, setVisible] = useState(false);
   const [edit, setEdit] = useState(false);
   const [add, setAdd] = useState(false);
+  const [addVisible, setAddVisible] = useState(false);
+
 
   const [form] = useForm();
   //● Generar una lista de tarjetas que muestre cada personaje(nombre, peso, altura)
@@ -53,18 +57,43 @@ export const ListItems = () => {
       }
       // console.log("traigo datos a local")
       localStorage.setItem("listIt", JSON.stringify(totalPeople));
-      listFromLocal();
+      
     } catch (err) {
       console.log(err);
-      listFromLocal();
     }
   };
 
+  //Analizo todo los personajes para obtener poder aceder a todos los enlaces de sus propiedades
+  const eliminaDuplicados = (arr) => {
+    return arr.reduce( (accArr, valor) => {
+      if (accArr.indexOf(valor) < 0) {
+        accArr.push(valor);
+      }
+      return accArr;
+    }, []);
+  }
+  const getFilmsList = ()=>{
+    const lista = JSON.parse(localStorage.getItem("listIt"));
+    let films =  lista.map(el=>el.films)
+    let list= [].concat(...films)
+    let listFilms = eliminaDuplicados(list)
+    insideFetch(listFilms)
+   
+  }
+  //funcion obtener inside fetchs
+  const insideFetch = async(prop)=>{
+    let listaProp = await Promise.all(prop.map(async (el)=>{
+      let response = await axios.get(el);
+      let t= response.data;
+      return t}))
+    console.log(listaProp)
+  }
   //Guardo los datos en local storage para poder modificarlos
   const listFromLocal = () => {
     const lista = JSON.parse(localStorage.getItem("listIt"));
     console.log("seteo estado desde local");
     setListIt(lista);
+
   };
   const searchByName = (search) => {
     setSearch(search.target.value);
@@ -94,12 +123,22 @@ export const ListItems = () => {
 
     setEdit(false);
     setAdd(true);
-    setVisible(true);
+    setAddVisible(true);
 
   }
-  const addPersonToDB = ()=>{
-    console.log(new FormData(document.getElementById('person-info')))
-
+  const addPersonToDB = (e)=>{
+    console.log(e)
+    let newList = [...JSON.parse(localStorage.getItem("listIt")),e]
+    localStorage.setItem("listIt", JSON.stringify(newList));
+    setListIt(newList)
+    Modal.info({
+      title: "Personaje Agregado",
+      icon: <CheckCircleOutlined style={{ color: "#52c41a" }} />,
+      content: `El personaje ${e.name} ha sido agregado correctamente`,
+      okText: "Ok",
+      okType: "ghost",
+    });
+    document.getElementById('addForm').reset()
   }
   const deleteModal = (item, index) => {
     Modal.confirm({
@@ -132,8 +171,14 @@ export const ListItems = () => {
     setLoading(true);
     listFromApi().finally(() => {
       setLoading(false);
+      listFromLocal()
     });
   }, []);
+
+  useEffect(()=>{
+    listFromLocal()
+  },[addVisible]);
+  
   // ● Al hacer click en un personaje renderizar una tarjeta con más detalles del personaje. LISTO
   // ● Realizar un CRUD de personajes, modificar, eliminar personajes de la api y poder
   // generar nuevos personajes.
@@ -164,7 +209,7 @@ export const ListItems = () => {
           <Option value='n/a'>Other</Option>
         </Select>
       </div>
-      <div className="add"><Button className="add-button" onClick={addPerson} >+</Button></div>
+      <div className="add"><Button className="add-button" onClick={addPerson} >Nuevo Personaje +</Button></div>
       <List
         grid={{
           gutter: 16,
@@ -199,6 +244,7 @@ export const ListItems = () => {
           </List.Item>
         )}
       />
+      //Global modal
       <Modal
         visible={visible}
         onCancel={() => {
@@ -207,15 +253,8 @@ export const ListItems = () => {
 
         }}
         footer={[
-          <Button hidden={!edit}>Editar</Button>,
-          <Button
-            onClick={() => {
-              setVisible(false);
-              setSelectedPerson({})
-            }}
-          >
-            Cancel
-          </Button>,
+          <Button hidden={!edit} htmlType="submit">Editar</Button>,
+          
           <Button
             onClick={() => {
               setVisible(false);
@@ -226,15 +265,7 @@ export const ListItems = () => {
           >
             Ok
           </Button>,
-          <Button
-            onClick={() => {
-              setVisible(false);
-              addPersonToDB()
-            }}
-            hidden={!add}
-          >
-            Agregar
-          </Button>,
+          
         ]}
       >
         <Button hidden={add?true:false}
@@ -245,75 +276,163 @@ export const ListItems = () => {
           <EditOutlined key="edit" />
         </Button>
         <div className="info">
-          <Form className="info-list" id="person-info" disabled={!edit &&!add}>
-          <Form.Item>
-              <label htmlFor="name">Nombre: </label>
+          <Form className="info-list" name={form} id="person-info" disabled={!edit &&!add}
+          // initialValues={{
+          //   name:null,
+          //   peliculas:null,
+          //   homeworld:null,
+          //   starships:null,
+          //   vehicles:null,
+          //   height:null,
+          //   mass:null,
+          //   gender:null
+          // }}
+           >
+          <Form.Item label="Name " id="name" name="name" key={"name"} initialValue={
+            {name:selectedPerson.name}
+          }>
               <Input
-                name="name"
-                id="name"
-                value={selectedPerson.name}
-                
               />
             </Form.Item>
 
-            <Form.Item>
-              <label htmlFor="peliculas">Peliculas: </label>
-              <Input
-                name="peliculas"
-                id="peliculas"
+            <Form.Item label="Películas" name="peliculas"  id="peliculas" key={"peliculas"}>
+              {/* <Input
                 value={selectedPerson.films?.map((el) => (
                   <li>{el}</li>
                 ))}
-              />
-              {selectedPerson.films?.map((el)=> async()=>{
-                let response = await axios.get(JSON.stringify(el))
-                console.log(response.data.name)
-                return'hola'
-})}
+              /> */}
+             <div>
+
+                {/* {[insideFetch(selectedPerson.films)]?.map(el =><div key={el.title}>{el.title}</div>)} */}
+             </div>
+              
+             
             </Form.Item>
 
-            <Form.Item>
-              <label htmlFor="homeworld">Planeta Hogar: </label>
+            <Form.Item  id="homeworld" name="homeworld" label="Planeta Hogar" key={"homeworld"}>
               <Input
-                name="homeworld"
-                id="homeworld"
                 value={selectedPerson.homeworld}
-              />{" "}
+              />
             </Form.Item>
 
-            <Form.Item>
-              <label htmlFor="starships">Naves: </label>
-              <Input name="starships" id="starships" />
-              {selectedPerson.starships?.map((el) => (
+            <Form.Item name="starships" label="Naves" id="starships" key={"starships"}>
+              <Input value={selectedPerson.starships?.map((el) => (
                 <li>{el}</li>
-              ))}
+              ))}  />
+              
             </Form.Item>
 
-            <Form.Item>
-              <label htmlFor="vehicles">Vehiculos:</label>
+            <Form.Item name="vehicles" label="Vehículos" id="vehicles" key={"vehicles"}>
               <Input
-                name="vehicles"
-                id="vehicles"
                 value={selectedPerson.vehicles?.map((el) => (
                   <li>{el}</li>
                 ))}
               />
             </Form.Item>
 
-            <Form.Item>
-              <label htmlFor="height">Altura[cm]: </label>
-              <Input name="height" id="height" value={selectedPerson.height} />
+            <Form.Item name="height" label="Altura[cm]" id="height" key={"height"}>
+              <Input  value={selectedPerson.height} />
             </Form.Item>
 
-            <Form.Item>
-              <label htmlFor="mass">Peso[kg]: </label>
-              <Input name="mass" id="mass" value={selectedPerson.mass} />
+            <Form.Item name="mass" label="Peso[kg]" id="mass" key={"mass"} >
+              <Input value={selectedPerson.mass} />
             </Form.Item>
 
-            <Form.Item>
-              <label htmlFor="gender">Genero: </label>
-              <Input name="gender" id="gender" value={selectedPerson.gender} />
+            <Form.Item name="gender" label="Genero" id="gender" key={"gender"}>
+              <Input   value={selectedPerson.gender} />
             </Form.Item>
+          
+
+            
+            <Form.Item key={"cancelButton"}>
+            <Button 
+            onClick={() => {
+              setVisible(false);
+              setSelectedPerson({});
+              form.resetFields()
+            }}
+          >
+            Cancel
+          </Button>
+            </Form.Item>
+          </Form>
+        </div>
+      </Modal>
+      {/* //Add modal */}
+      <Modal
+        visible={addVisible}
+        
+        okButtonProps={{style:{display:'none'}
+        }}
+        cancelButtonProps={{style:{display:'none'}
+        }}
+        
+      >
+        <h1>Agrega un personaje nuevo</h1>
+        <div className="info">
+          <Form className="info-list" name={'addForm'} id="addForm" 
+          initialValues={{
+            name:null,
+            peliculas:null,
+            homeworld:null,
+            starships:null,
+            vehicles:null,
+            height:null,
+            mass:null,
+            gender:null
+          }}
+          onFinish={addPersonToDB}
+           >
+          <Form.Item label="Name " id="name" name="name" key={"name"} >
+              <Input required maxLength={30}
+              />
+            </Form.Item>
+
+            <Form.Item label="Películas" name="peliculas"  id="peliculas" key={"peliculas"}>
+              <Input required/>
+             
+            </Form.Item>
+
+            <Form.Item  id="homeworld" name="homeworld" label="Planeta Hogar" key={"homeworld"}>
+              <Input
+              />
+            </Form.Item>
+
+            <Form.Item name="starships" label="Naves" id="starships" key={"starships"}>
+              <Input  />
+              
+            </Form.Item>
+
+            <Form.Item name="vehicles" label="Vehículos" id="vehicles" key={"vehicles"}>
+              <Input
+                
+              />
+            </Form.Item>
+
+            <Form.Item name="height" label="Altura[cm]" id="height" key={"height"}>
+              <Input   />
+            </Form.Item>
+
+            <Form.Item name="mass" label="Peso[kg]" id="mass" key={"mass"} >
+              <Input  />
+            </Form.Item>
+
+            <Form.Item name="gender" label="Genero" id="gender" key={"gender"}>
+              <Input   />
+            </Form.Item>
+            
+            <Row gutter={8}>
+              <Col className="addModalButton">
+                    <Button htmlType="submit" >
+                    Agregar
+                    </Button>
+              </Col>
+              <Col className="addModalButton">
+                    <Button onClick={() => { setAddVisible(false)}}>
+                    Cancel
+                    </Button>
+              </Col>
+            </Row>
           </Form>
         </div>
       </Modal>

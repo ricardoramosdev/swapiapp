@@ -32,6 +32,13 @@ body{background-color: var(--primary-color);}
     color: var(--forth-color);
     background-color: var(--tertiary-color);
 }
+#addForm .ant-row{
+    justify-content: flex-end;
+    align-items: center;
+}
+#addForm .addModalButton:first-child button{
+   background-color: var(--forth-color); 
+}
 .ant-list .ant-row{
     width: 100%;
     margin: 0!important;
