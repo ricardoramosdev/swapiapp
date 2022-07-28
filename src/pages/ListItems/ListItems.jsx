@@ -264,7 +264,7 @@ export const ListItems = () => {
         }}
         loading={loading}
         dataSource={listToRender}
-        pagination={{ defaultCurrent: 1, pageSize: 10 }}
+        pagination={{ defaultCurrent: 1, pageSize: 10,showSizeChanger:false }}
         renderItem={(item) => (
           <List.Item>
             <Card
