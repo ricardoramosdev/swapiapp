@@ -1,0 +1,62 @@
+@import '../../colortheme.css';
+body{background-color: var(--primary-color);}
+.item-prop{
+    padding-left: 2rem;
+}
+
+.search{
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    height: 4rem;
+    position: sticky;
+    top: 0;
+    z-index: 1040;
+    background-color: var(--primary-color);
+}
+.search-param{
+    width:40% !important;
+}
+.add{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.add-button{
+    margin: 0.5rem;
+    width: 70%;
+    background-color: var(--forth-color);
+    border: none;
+}
+.add-button:hover{
+    color: var(--forth-color);
+    background-color: var(--tertiary-color);
+}
+#addForm .ant-row{
+    justify-content: flex-end;
+    align-items: center;
+}
+#addForm .addModalButton:first-child button{
+   background-color: var(--forth-color); 
+}
+.ant-list .ant-row{
+    width: 100%;
+    margin: 0!important;
+    padding-top: 1rem;
+
+    background-color: var(--secondary-color);
+}
+.ant-card ,.ant-card-actions, .ant-card-head{
+    background-color: var(--tertiary-color);
+    color: var(--secondary-text)  ;
+}
+.ant-list-item{
+    background-color: transparent;
+}
+.ant-list-item:nth-child(){
+    background-color: var(--primary-color) !important;
+}
+.ant-list-pagination{
+    padding: 1rem;
+    margin: 0;
+}
