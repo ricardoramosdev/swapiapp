@@ -1,10 +1,7 @@
 import {
   CheckCircleOutlined,
-  ConsoleSqlOutlined,
   DeleteOutlined,
   EditOutlined,
-  EllipsisOutlined,
-  ExclamationCircleOutlined,
   SettingOutlined,
   WarningOutlined,
 } from "@ant-design/icons";
@@ -16,19 +13,13 @@ import {
   Input,
   List,
   Modal,
-  Pagination,
   Row,
   Select,
 } from "antd";
-import Avatar from "antd/lib/avatar/avatar";
-import Meta from "antd/lib/card/Meta";
 import "antd/dist/antd.css";
 import "./ListItem.css";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import confirm from "antd/lib/modal/confirm";
-import { ItemsDetailModal } from "../../ItemsDetail/ItemsDetailModal";
 import { Option } from "rc-select";
 import { useForm } from "antd/lib/form/Form";
 const URL = "https://swapi.dev/api";
@@ -55,9 +46,7 @@ export const ListItems = () => {
       for (let i = 1; i <= 9; i++) {
         const response = await axios.get(`${URL}/people/?page=${i}`);
         totalPeople.push(...response.data.results);
-        console.log(totalPeople);
       }
-      // console.log("traigo datos a local")
       localStorage.setItem("listIt", JSON.stringify(totalPeople));
       
     } catch (err) {
@@ -80,7 +69,6 @@ export const ListItems = () => {
       let response = await axios.get(el);
       let t= response.data;
       return t}))
-    // console.log(listaProp)
     return(listaProp)
   }
   const getFilmsList = async ()=>{
@@ -105,7 +93,6 @@ export const ListItems = () => {
   //Guardo los datos en local storage para poder modificarlos
   const listFromLocal = async () => {
     const lista = JSON.parse(localStorage.getItem("listIt"))||listFromApi();
-    console.log("seteo estado desde local");
     setListIt(lista);
 
   };
@@ -113,7 +100,6 @@ export const ListItems = () => {
     setSearch(search.target.value);
   };
   const searchByFilter = (search) => {
-    console.log(search)
     setSearch(search);
   };
 
@@ -131,17 +117,13 @@ export const ListItems = () => {
     
   };
   const editPerson = (item, index) => {
-    // console.log(index);
     
     setEdit(true);
   };
   const confirmEdition = (e)=>{
-    console.log('nuevo valor ',e)
     let viejoarray = JSON.parse(localStorage.getItem("listIt"));
-    console.log('indice que reemplaza',listIt.indexOf(selectedPerson))
     let editedPerson = e
     viejoarray.splice(listIt.indexOf(selectedPerson),1,editedPerson)
-    console.log(viejoarray)
     localStorage.setItem("listIt", JSON.stringify(viejoarray));
     setListIt(viejoarray)
     Modal.info({
@@ -163,7 +145,6 @@ export const ListItems = () => {
 
   }
   const addPersonToDB = (e)=>{
-    console.log(e)
     let newList = [...JSON.parse(localStorage.getItem("listIt")),e]
     localStorage.setItem("listIt", JSON.stringify(newList));
     setListIt(newList)
@@ -189,7 +170,6 @@ export const ListItems = () => {
     });
   };
   const deletePerson = (item, index) => {
-    console.log(index);
     let newDelete = listIt.filter((item) => item !== listIt[index]);
     setListIt(newDelete);
     localStorage.setItem("listIt", JSON.stringify(newDelete));
@@ -216,17 +196,7 @@ export const ListItems = () => {
     listFromLocal()
   },[addVisible]);
   
-//   useEffect(()=>{
-//  getFilmsList()
-//   getStarshipsList()
-//   },[])
-  // ● Al hacer click en un personaje renderizar una tarjeta con más detalles del personaje. LISTO
-  // ● Realizar un CRUD de personajes, modificar, eliminar personajes de la api y poder
-  // generar nuevos personajes.
 
-  // ● Búsqueda de personaje por nombre.
-  // ● Generar algún tipo de filtro por “gender”, “homeworld”, o alguna propiedad a elección
-  // propia. LISTO
   return (
     <>
       <div className="search">
@@ -333,7 +303,7 @@ export const ListItems = () => {
             <Form.Item label="Películas" name="peliculas"  id="peliculas" key={"peliculas"}>
               <Select mode='multiple'></Select>
 
-                {/* {[insideFetch(selectedPerson.films)]?.map(el =><div key={el.title}>{el.title}</div>)} */}
+              
             </Form.Item>
 
             <Form.Item  id="homeworld" name="homeworld" label="Planeta Hogar" key={"homeworld"}>
@@ -344,17 +314,13 @@ export const ListItems = () => {
             <Form.Item name="starships" label="Naves" id="starships" key={"starships"}>
               <Select mode='multiple'  ></Select>
 
-              {/* {selectedPerson.starships?.map((el) => (
-                <li>{el}</li>
-              ))} */}
+              
             </Form.Item>
 
             <Form.Item name="vehicles" label="Vehículos" id="vehicles" key={"vehicles"}>
             <Select mode='multiple' ></Select>
 
-              {/* {selectedPerson.vehicles?.map((el) => (
-                  <li>{el}</li>
-                ))} */}
+             
             </Form.Item>
 
             <Form.Item name="height" label="Altura[cm]" id="height" key={"height"}>
@@ -365,12 +331,10 @@ export const ListItems = () => {
             <Form.Item name="mass" label="Peso[kg]" id="mass" key={"mass"} >
             <Input/>
               
-              {/* {selectedPerson.mass} */}
             </Form.Item>
 
             <Form.Item name="gender" label="Genero" id="gender" key={"gender"}>
             <Input/>
-              {/* {selectedPerson.gender} */}
             </Form.Item>
             <Row gutter={8}>
               <Col className="addModalButton">
