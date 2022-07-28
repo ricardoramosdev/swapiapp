@@ -43,7 +43,9 @@ export const ListItems = () => {
   const [add, setAdd] = useState(false);
   const [addVisible, setAddVisible] = useState(false);
 
-
+//estados de lista de propiedades de personas
+  const[films,setFilms]=useState([])
+  const[starships,setStarships]=useState([])
   const [form] = useForm();
   //● Generar una lista de tarjetas que muestre cada personaje(nombre, peso, altura)
   //Obtengo datos de la api
@@ -72,25 +74,37 @@ export const ListItems = () => {
       return accArr;
     }, []);
   }
-  const getFilmsList = ()=>{
-    const lista = JSON.parse(localStorage.getItem("listIt"));
-    let films =  lista.map(el=>el.films)
-    let list= [].concat(...films)
-    let listFilms = eliminaDuplicados(list)
-    insideFetch(listFilms)
-   
-  }
   //funcion obtener inside fetchs
   const insideFetch = async(prop)=>{
     let listaProp = await Promise.all(prop.map(async (el)=>{
       let response = await axios.get(el);
       let t= response.data;
       return t}))
-    console.log(listaProp)
+    // console.log(listaProp)
+    return(listaProp)
   }
-  //Guardo los datos en local storage para poder modificarlos
-  const listFromLocal = () => {
+  const getFilmsList = async ()=>{
     const lista = JSON.parse(localStorage.getItem("listIt"));
+    let films =  lista.map(el=>el.films)
+    let list= [].concat(...films)
+    let listFilms = eliminaDuplicados(list)
+    let pelis = await insideFetch(listFilms)
+    setFilms(pelis)
+  }
+  
+  const getStarshipsList = async ()=>{
+    const lista = JSON.parse(localStorage.getItem("listIt"));
+    let starships =  lista.map(el=>el.starships)
+    let list= [].concat(...starships)
+    let liststarships = eliminaDuplicados(list)
+    let naves = await insideFetch(liststarships)
+    setStarships(naves)
+  }
+ 
+
+  //Guardo los datos en local storage para poder modificarlos
+  const listFromLocal = async () => {
+    const lista = JSON.parse(localStorage.getItem("listIt"))||listFromApi();
     console.log("seteo estado desde local");
     setListIt(lista);
 
@@ -109,16 +123,38 @@ export const ListItems = () => {
         it.name.toLowerCase().includes(search.toLowerCase()) ||it.gender===search
       );
 
-  const moreInfo = (item, index) => {
+  const moreInfo = async (item, index) => {
+    setSelectedPerson(item);
     setEdit(false);
     setAdd(false)
-    setSelectedPerson(item);
     setVisible(true);
+    
   };
   const editPerson = (item, index) => {
-    console.log(index);
+    // console.log(index);
+    
     setEdit(true);
   };
+  const confirmEdition = (e)=>{
+    console.log('nuevo valor ',e)
+    let viejoarray = JSON.parse(localStorage.getItem("listIt"));
+    console.log('indice que reemplaza',listIt.indexOf(selectedPerson))
+    let editedPerson = e
+    viejoarray.splice(listIt.indexOf(selectedPerson),1,editedPerson)
+    console.log(viejoarray)
+    localStorage.setItem("listIt", JSON.stringify(viejoarray));
+    setListIt(viejoarray)
+    Modal.info({
+      title: "Personaje Editado",
+      icon: <CheckCircleOutlined style={{ color: "#52c41a" }} />,
+      content: `El personaje ${e.name} ha sido editado correctamente`,
+      okText: "Ok",
+      okType: "ghost",
+    });
+    setVisible(false);
+    setSelectedPerson(null);
+
+  }
   const addPerson = ()=>{
 
     setEdit(false);
@@ -169,16 +205,21 @@ export const ListItems = () => {
 
   useEffect(() => {
     setLoading(true);
-    listFromApi().finally(() => {
+    listFromLocal().finally(() => {
       setLoading(false);
-      listFromLocal()
+      
     });
+
   }, []);
 
   useEffect(()=>{
     listFromLocal()
   },[addVisible]);
   
+//   useEffect(()=>{
+//  getFilmsList()
+//   getStarshipsList()
+//   },[])
   // ● Al hacer click en un personaje renderizar una tarjeta con más detalles del personaje. LISTO
   // ● Realizar un CRUD de personajes, modificar, eliminar personajes de la api y poder
   // generar nuevos personajes.
@@ -210,6 +251,7 @@ export const ListItems = () => {
         </Select>
       </div>
       <div className="add"><Button className="add-button" onClick={addPerson} >Nuevo Personaje +</Button></div>
+      
       <List
         grid={{
           gutter: 16,
@@ -244,15 +286,17 @@ export const ListItems = () => {
           </List.Item>
         )}
       />
-      {/* //Global modal */}
+      {/* //Edit modal */}
       <Modal
         visible={visible}
         onCancel={() => {
           setVisible(false);
-          setSelectedPerson({})
+          setSelectedPerson(null)
 
         }}
-        
+        destroyOnClose={true}
+        cancelButtonProps={{style:{display:edit?'none':'block'}}}
+        okButtonProps={{style:{display:'none'}}}
       >
         <Button 
           onClick={() =>
@@ -262,78 +306,88 @@ export const ListItems = () => {
           <EditOutlined key="edit" />
         </Button>
         <div className="info">
-          <Form className="info-list" name={"editForm"} id="person-info" disabled={!edit}
-          // initialValues={{
-          //   name:null,
-          //   peliculas:null,
-          //   homeworld:null,
-          //   starships:null,
-          //   vehicles:null,
-          //   height:null,
-          //   mass:null,
-          //   gender:null
-          // }}
+          <Form className="info-list" name={"editForm"} id="editForm" disabled={!edit}
+          initialValues={{
+            name:selectedPerson?.name,
+            peliculas:selectedPerson?.films,
+            homeworld:selectedPerson?.homeworld,
+            starships:selectedPerson?.starships,
+            vehicles:selectedPerson?.vehicles,
+            height:selectedPerson?.height,
+            mass:selectedPerson?.mass,
+            gender:selectedPerson?.gender
+          }}
+          preserve={false}
+          
+          onFinish={confirmEdition}
+    
+    
            >
+            
           <Form.Item label="Name " id="name" name="name" key={"name"} >
-              <Input hidden={!edit}
+              <Input 
               />
-              {selectedPerson.name}
+              
             </Form.Item>
 
             <Form.Item label="Películas" name="peliculas"  id="peliculas" key={"peliculas"}>
-              <Input  hidden={!edit}/>
-              {selectedPerson.films?.map((el) => (
-                  <li>{el}</li>
-                ))}
+              <Select mode='multiple'></Select>
 
                 {/* {[insideFetch(selectedPerson.films)]?.map(el =><div key={el.title}>{el.title}</div>)} */}
             </Form.Item>
 
             <Form.Item  id="homeworld" name="homeworld" label="Planeta Hogar" key={"homeworld"}>
-              <Input hidden={!edit}          
-              />
-              {selectedPerson.homeworld}
+              <Input/>
+              
             </Form.Item>
 
             <Form.Item name="starships" label="Naves" id="starships" key={"starships"}>
-              <Input hidden={!edit}   />
-              {selectedPerson.starships?.map((el) => (
+              <Select mode='multiple'  ></Select>
+
+              {/* {selectedPerson.starships?.map((el) => (
                 <li>{el}</li>
-              ))}
+              ))} */}
             </Form.Item>
 
             <Form.Item name="vehicles" label="Vehículos" id="vehicles" key={"vehicles"}>
-              <Input hidden={!edit} />
-              {selectedPerson.vehicles?.map((el) => (
+            <Select mode='multiple' ></Select>
+
+              {/* {selectedPerson.vehicles?.map((el) => (
                   <li>{el}</li>
-                ))}
+                ))} */}
             </Form.Item>
 
             <Form.Item name="height" label="Altura[cm]" id="height" key={"height"}>
-              <Input hidden={!edit} />
-              {selectedPerson.height} 
+              <Input/>
+               
             </Form.Item>
 
             <Form.Item name="mass" label="Peso[kg]" id="mass" key={"mass"} >
-              <Input hidden={!edit}  />
-              {selectedPerson.mass}
+            <Input/>
+              
+              {/* {selectedPerson.mass} */}
             </Form.Item>
 
             <Form.Item name="gender" label="Genero" id="gender" key={"gender"}>
-              <Input hidden={!edit}   />
-              {selectedPerson.gender}
+            <Input/>
+              {/* {selectedPerson.gender} */}
             </Form.Item>
-          
-            <Button 
-            onClick={() => {
-              setVisible(false);
-              setSelectedPerson({});
-            }}
-            hidden={!edit}
-          >
-            Cancel
-          </Button>
-            <Button hidden={!edit} htmlType="submit">Editar</Button>
+            <Row gutter={8}>
+              <Col className="addModalButton">
+              <Button hidden={!edit} htmlType="submit">Editar</Button>
+              </Col>
+              <Col className="addModalButton">
+                <Button onClick={() => {
+                setVisible(false);
+                setSelectedPerson(null)
+              }}
+                hidden={!edit}>
+                Cancel
+                </Button>
+              </Col>
+            </Row>
+            
+            
           </Form>
         </div>
       </Modal>
@@ -347,7 +401,7 @@ export const ListItems = () => {
         }}
         cancelButtonProps={{style:{display:'none'}
         }}
-        
+        onCancel={() => { setAddVisible(false)}}
       >
         <h1>Agrega un personaje nuevo</h1>
         <div className="info">
